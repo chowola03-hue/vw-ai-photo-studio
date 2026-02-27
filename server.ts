@@ -42,11 +42,13 @@ app.get("/api/history", async (req, res) => {
   if (!supabase) return res.json([]);
 
   try {
+    // Vercel has a 4.5MB response limit. 
+    // Base64 images are large, so we limit to the most recent 5 items.
     const { data, error } = await supabase
       .from('history')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(5);
 
     if (error) throw error;
     res.json(data || []);
@@ -70,32 +72,25 @@ app.delete("/api/history/:id", async (req, res) => {
   }
 });
 
-// Setup Vite or Static serving
-async function setupApp() {
-  if (process.env.NODE_ENV !== "production") {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.resolve(__dirname, "dist");
-    if (fs.existsSync(distPath)) {
-      app.use(express.static(distPath));
-      app.get("*", (req, res) => {
-        res.sendFile(path.resolve(distPath, "index.html"));
-      });
-    }
-  }
-}
-
-setupApp();
-
+// Setup logic
 if (process.env.NODE_ENV !== "production") {
+  const { createServer: createViteServer } = await import("vite");
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: "spa",
+  });
+  app.use(vite.middlewares);
+  
   const PORT = 3000;
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+  });
+} else {
+  // Production: Serve static files
+  const distPath = path.resolve(__dirname, "dist");
+  app.use(express.static(distPath));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
 
