@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -21,30 +20,26 @@ app.post("/api/history", async (req, res) => {
   const { name, dealer, showroom, background, image_front, image_side, image_full } = req.body;
   
   if (!supabase) {
-    console.warn("Supabase not configured, skipping persistent save");
+    console.warn("Supabase not configured");
     return res.status(200).json({ id: Date.now(), warning: "Supabase not configured" });
   }
 
   try {
     const { data, error } = await supabase
       .from('history')
-      .insert([
-        { name, dealer, showroom, background, image_front, image_side, image_full }
-      ])
+      .insert([{ name, dealer, showroom, background, image_front, image_side, image_full }])
       .select();
 
     if (error) throw error;
     res.json({ id: data[0].id });
   } catch (error) {
-    console.error("Supabase error:", error);
+    console.error("Supabase save error:", error);
     res.status(500).json({ error: "Failed to save history" });
   }
 });
 
 app.get("/api/history", async (req, res) => {
-  if (!supabase) {
-    return res.json([]);
-  }
+  if (!supabase) return res.json([]);
 
   try {
     const { data, error } = await supabase
@@ -54,27 +49,10 @@ app.get("/api/history", async (req, res) => {
       .limit(50);
 
     if (error) throw error;
-    res.json(data);
+    res.json(data || []);
   } catch (error) {
-    console.error("Supabase error:", error);
+    console.error("Supabase fetch error:", error);
     res.status(500).json({ error: "Failed to fetch history" });
-  }
-});
-
-app.delete("/api/history", async (req, res) => {
-  if (!supabase) return res.status(400).json({ error: "Supabase not configured" });
-
-  try {
-    const { error } = await supabase
-      .from('history')
-      .delete()
-      .neq('id', 0); // Delete all
-
-    if (error) throw error;
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Supabase error:", error);
-    res.status(500).json({ error: "Failed to delete all history" });
   }
 });
 
@@ -83,28 +61,25 @@ app.delete("/api/history/:id", async (req, res) => {
   if (!supabase) return res.status(400).json({ error: "Supabase not configured" });
 
   try {
-    const { error } = await supabase
-      .from('history')
-      .delete()
-      .eq('id', id);
-
+    const { error } = await supabase.from('history').delete().eq('id', id);
     if (error) throw error;
     res.json({ success: true });
   } catch (error) {
-    console.error("Supabase error:", error);
+    console.error("Supabase delete error:", error);
     res.status(500).json({ error: "Failed to delete history" });
   }
 });
 
-async function setupVite() {
+// Setup Vite or Static serving
+async function setupApp() {
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    // Serve static files in production
     const distPath = path.resolve(__dirname, "dist");
     if (fs.existsSync(distPath)) {
       app.use(express.static(distPath));
@@ -115,9 +90,8 @@ async function setupVite() {
   }
 }
 
-setupVite();
+setupApp();
 
-// Only listen if not running as a Vercel function
 if (process.env.NODE_ENV !== "production") {
   const PORT = 3000;
   app.listen(PORT, "0.0.0.0", () => {
