@@ -84,8 +84,8 @@ export default function App() {
       const getPrompt = (type: 'front' | 'side' | 'full') => {
         let bgDesc = "";
         if (background === 'solid') bgDesc = "a solid, uniform, and perfectly smooth light gray studio backdrop";
-        else if (background === 'logo') bgDesc = "a solid white studio backdrop with a small, clean Volkswagen logo placed in the top right corner";
-        else bgDesc = "a real-life modern Volkswagen dealership interior with a sleek Volkswagen Atlas car parked naturally in the background, captured with a shallow depth of field to blur the background";
+        else if (background === 'logo') bgDesc = "a solid white studio backdrop with a small, clean, minimalist 2D flat Volkswagen logo (new design) placed in the top right corner";
+        else bgDesc = "a real-life modern Volkswagen dealership interior with a sleek new Volkswagen Atlas car parked naturally in the background, captured with a shallow depth of field to blur the background";
 
         const typeDesc = {
           front: "a professional upper-body front-facing portrait with a trustworthy smile",
@@ -96,11 +96,11 @@ export default function App() {
         return `Generate a high-quality, professional business profile photo for a Volkswagen sales consultant named ${name}. 
         The person in the photo MUST strictly match the facial features and characteristics of the provided source images.
         The person should be wearing a sharp, modern professional dark charcoal gray business suit with a white shirt and a navy blue tie. This clothing must be consistent across all images.
-        On the left chest of the suit jacket, there MUST be a rectangular silver metal name tag. The name tag should clearly display the name "${name}" in Korean and the circular Volkswagen logo next to it.
+        On the left chest of the suit jacket, there MUST be a rectangular silver metal name tag. The name tag should clearly display the name "${name}" in Korean and the new minimalist 2D flat Volkswagen logo next to it.
         The shot should be ${typeDesc}.
         The background should be ${bgDesc}.
         The background must be a clean, high-resolution professional studio environment with soft, natural lighting.
-        CRITICAL NEGATIVE INSTRUCTION: The image MUST NOT contain any digital text, watermarks, stock photo labels, or logos other than the name tag. 
+        CRITICAL NEGATIVE INSTRUCTION: The image MUST NOT contain any digital text, watermarks, stock photo labels, or logos other than the name tag and the specified background logo. 
         Specifically, ensure there is NO 'Unsplash+', 'Getty', 'iStock', 'Adobe Stock', or any other watermark text anywhere in the image.
         The background should be smooth, pristine, and uniform, looking like a custom-shot bespoke studio portrait.
         Absolutely no grid lines, no copyright symbols, no semi-transparent overlays, and no repeating patterns in the background.
@@ -139,22 +139,26 @@ export default function App() {
         const newResults = { front, side, full };
         setResults(newResults);
 
-        // Save to DB
-        const saveResponse = await fetch('/api/history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name, dealer, showroom, background,
-            image_front: front,
-            image_side: side,
-            image_full: full
-          })
-        });
+        // Save to DB (wrapped in its own try-catch to avoid failing the UI if DB fails)
+        try {
+          const saveResponse = await fetch('/api/history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name, dealer, showroom, background,
+              image_front: front,
+              image_side: side,
+              image_full: full
+            })
+          });
 
-        if (saveResponse.ok) {
-          fetchHistory();
-        } else {
-          // Local fallback
+          if (saveResponse.ok) {
+            fetchHistory();
+          } else {
+            throw new Error("Server failed to save");
+          }
+        } catch (dbError) {
+          console.warn("Database save failed, using local storage fallback:", dbError);
           const newItem: HistoryItem = {
             id: Date.now(),
             name, dealer, showroom, background,
@@ -167,10 +171,12 @@ export default function App() {
           setHistory(updatedHistory);
           localStorage.setItem('vw_photo_history', JSON.stringify(updatedHistory));
         }
+      } else {
+        alert("이미지 생성에 실패했습니다. 일부 이미지가 생성되지 않았습니다.");
       }
     } catch (error) {
       console.error("Generation failed:", error);
-      alert("이미지 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
+      alert("이미지 생성 중 오류가 발생했습니다. 네트워크 상태를 확인해주세요.");
     } finally {
       setIsGenerating(false);
     }
@@ -223,10 +229,10 @@ export default function App() {
   };
 
   const VWLogo = () => (
-    <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" stroke="currentColor" strokeWidth="3" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="47" />
-      <path d="M22 28 L41 78 L50 55 L59 78 L78 28" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M34 28 L50 68 L66 28" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" stroke="currentColor" strokeWidth="2" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" />
+      <path d="M25 35 L44 75 L50 62 L56 75 L75 35" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M35 35 L50 68 L65 35" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 
