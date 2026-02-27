@@ -84,12 +84,6 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-// Only listen if this file is run directly (not as a Vercel function)
-if (process.env.NODE_ENV !== "production" || process.env.VERCEL !== "1") {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
+// Only listen if this file is run directly and NOT imported by another file
+// In Vercel, we only export the app.
 export default app;
