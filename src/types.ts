@@ -19,7 +19,7 @@ export const DEALERS = {
 };
 
 export const BACKGROUNDS = [
-  { id: "solid", name: "단색", description: "깔끔한 라이트 그레이 스튜디오 배경" },
+  { id: "solid", name: "단색", description: "깔끔한 소프트 블루 스튜디오 배경 (여권 사진 스타일)" },
   { id: "logo", name: "로고 포함", description: "화이트 배경 우측 상단 폭스바겐 로고" },
   { id: "showroom", name: "전시장", description: "폭스바겐 전시장 내부와 차량 배경" }
 ];

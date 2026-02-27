@@ -83,7 +83,7 @@ export default function App() {
       
       const getPrompt = (type: 'front' | 'side' | 'full') => {
         let bgDesc = "";
-        if (background === 'solid') bgDesc = "a solid, uniform, and perfectly smooth light gray studio backdrop";
+        if (background === 'solid') bgDesc = "a solid, uniform, and perfectly smooth soft sky blue studio backdrop, similar to a professional passport photo background";
         else if (background === 'logo') bgDesc = "a solid white studio backdrop with a small, clean, minimalist 2D flat Volkswagen logo (new design) placed in the top right corner";
         else bgDesc = "a real-life modern Volkswagen dealership interior with a sleek new Volkswagen Atlas car parked naturally in the background, captured with a shallow depth of field to blur the background";
 
@@ -115,25 +115,29 @@ export default function App() {
       }));
 
       const generateTask = async (type: 'front' | 'side' | 'full') => {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-image',
-          contents: {
-            parts: [...imageParts, { text: getPrompt(type) }]
-          },
-          config: {
-            systemInstruction: "You are a professional bespoke photographer. Your absolute priority is to generate clean, high-end portraits without any digital artifacts. You are STRICTLY FORBIDDEN from including any watermarks, 'Unsplash+' text, stock photo labels, copyright notices, or any semi-transparent text overlays. Every pixel of the background must be clear and intentional."
-          }
-        });
+        try {
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+              parts: [...imageParts, { text: getPrompt(type) }]
+            },
+            config: {
+              systemInstruction: "You are a professional bespoke photographer. Your absolute priority is to generate clean, high-end portraits without any digital artifacts. You are STRICTLY FORBIDDEN from including any watermarks, 'Unsplash+' text, stock photo labels, copyright notices, or any semi-transparent text overlays. Every pixel of the background must be clear and intentional."
+            }
+          });
 
-        const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-        return part?.inlineData?.data ? `data:image/png;base64,${part.inlineData.data}` : null;
+          const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
+          return part?.inlineData?.data ? `data:image/png;base64,${part.inlineData.data}` : null;
+        } catch (taskError) {
+          console.error(`Task ${type} failed:`, taskError);
+          return null;
+        }
       };
 
-      const [front, side, full] = await Promise.all([
-        generateTask('front'),
-        generateTask('side'),
-        generateTask('full')
-      ]);
+      // Generate images one by one to avoid potential rate limits or timeouts
+      const front = await generateTask('front');
+      const side = await generateTask('side');
+      const full = await generateTask('full');
 
       if (front && side && full) {
         const newResults = { front, side, full };
@@ -176,7 +180,7 @@ export default function App() {
       }
     } catch (error) {
       console.error("Generation failed:", error);
-      alert("이미지 생성 중 오류가 발생했습니다. 네트워크 상태를 확인해주세요.");
+      alert("이미지 생성 중 오류가 발생했습니다. 잠시 후 다시 시도하거나 네트워크 상태를 확인해주세요.");
     } finally {
       setIsGenerating(false);
     }
