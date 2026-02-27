@@ -36,17 +36,33 @@ export default function App() {
   }, []);
 
   const fetchHistory = async () => {
+    // 1. Load from localStorage first for immediate UI update
+    const localHistory = localStorage.getItem('vw_photo_history');
+    let mergedHistory: HistoryItem[] = [];
+    if (localHistory) {
+      mergedHistory = JSON.parse(localHistory);
+      setHistory(mergedHistory);
+    }
+
     try {
+      // 2. Try to fetch from server
       const response = await fetch('/api/history');
       if (response.ok) {
-        const data = await response.json();
-        setHistory(data);
+        const serverData: HistoryItem[] = await response.json();
+        
+        // 3. Merge server data with local data, avoiding duplicates by ID
+        const existingIds = new Set(mergedHistory.map(item => item.id));
+        const newItems = serverData.filter(item => !existingIds.has(item.id));
+        
+        const finalHistory = [...newItems, ...mergedHistory].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ).slice(0, 20); // Keep last 20 items
+
+        setHistory(finalHistory);
+        localStorage.setItem('vw_photo_history', JSON.stringify(finalHistory));
       }
     } catch (error) {
-      console.error("Failed to fetch history:", error);
-      // Fallback to localStorage if server fails
-      const localHistory = localStorage.getItem('vw_photo_history');
-      if (localHistory) setHistory(JSON.parse(localHistory));
+      console.error("Failed to fetch history from server:", error);
     }
   };
 
