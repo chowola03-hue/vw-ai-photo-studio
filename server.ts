@@ -3,6 +3,9 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -72,25 +75,20 @@ app.delete("/api/history/:id", async (req, res) => {
   }
 });
 
-// Setup logic
-if (process.env.NODE_ENV !== "production") {
-  const { createServer: createViteServer } = await import("vite");
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "spa",
-  });
-  app.use(vite.middlewares);
-  
-  const PORT = 3000;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-} else {
-  // Production: Serve static files
-  const distPath = path.resolve(__dirname, "dist");
+// Production: Serve static files
+const distPath = path.resolve(__dirname, "dist");
+if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get("*", (req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
+  });
+}
+
+// Only listen if this file is run directly (not as a Vercel function)
+if (process.env.NODE_ENV !== "production" || process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
   });
 }
 
