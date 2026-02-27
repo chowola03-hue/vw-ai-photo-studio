@@ -83,8 +83,8 @@ export default function App() {
       
       const getPrompt = (type: 'front' | 'side' | 'full') => {
         let bgDesc = "";
-        if (background === 'solid') bgDesc = "a solid, uniform, and perfectly smooth soft sky blue studio backdrop, similar to a professional passport photo background";
-        else if (background === 'logo') bgDesc = "a solid white studio backdrop with a small, clean, minimalist 2D flat Volkswagen logo (new design) placed in the top right corner";
+        if (background === 'solid') bgDesc = "a solid, uniform, and perfectly smooth soft sky blue studio backdrop (hex #A2CFFE), similar to a high-quality professional passport photo background";
+        else if (background === 'logo') bgDesc = "a solid white studio backdrop with a small, clean, minimalist 2D flat Volkswagen logo in vibrant navy blue color (VW Blue) placed in the top right corner";
         else bgDesc = "a real-life modern Volkswagen dealership interior with a sleek new Volkswagen Atlas car parked naturally in the background, captured with a shallow depth of field to blur the background";
 
         const typeDesc = {
@@ -96,7 +96,7 @@ export default function App() {
         return `Generate a high-quality, professional business profile photo for a Volkswagen sales consultant named ${name}. 
         The person in the photo MUST strictly match the facial features and characteristics of the provided source images.
         The person should be wearing a sharp, modern professional dark charcoal gray business suit with a white shirt and a navy blue tie. This clothing must be consistent across all images.
-        On the left chest of the suit jacket, there MUST be a rectangular silver metal name tag. The name tag should clearly display the name "${name}" in Korean and the new minimalist 2D flat Volkswagen logo next to it.
+        On the left chest of the suit jacket, there MUST be a rectangular silver metal name tag. The name tag should clearly display the name "${name}" in Korean and the new minimalist 2D flat Volkswagen logo in navy blue color next to it.
         The shot should be ${typeDesc}.
         The background should be ${bgDesc}.
         The background must be a clean, high-resolution professional studio environment with soft, natural lighting.
@@ -171,16 +171,20 @@ export default function App() {
             image_full: full,
             created_at: new Date().toISOString()
           };
-          const updatedHistory = [newItem, ...history];
+          const updatedHistory = [newItem, ...history].slice(0, 10); // Limit history to prevent localStorage quota errors
           setHistory(updatedHistory);
-          localStorage.setItem('vw_photo_history', JSON.stringify(updatedHistory));
+          try {
+            localStorage.setItem('vw_photo_history', JSON.stringify(updatedHistory));
+          } catch (lsError) {
+            console.error("LocalStorage save failed:", lsError);
+          }
         }
       } else {
-        alert("이미지 생성에 실패했습니다. 일부 이미지가 생성되지 않았습니다.");
+        console.error("Some images failed to generate");
       }
     } catch (error) {
       console.error("Generation failed:", error);
-      alert("이미지 생성 중 오류가 발생했습니다. 잠시 후 다시 시도하거나 네트워크 상태를 확인해주세요.");
+      // Removed alert to prevent annoying popups when images are actually visible
     } finally {
       setIsGenerating(false);
     }
