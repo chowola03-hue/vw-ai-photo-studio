@@ -249,20 +249,20 @@ export default function App() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight" style={{ color: VW_BLUE }}>VW Photo Studio</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight whitespace-nowrap" style={{ color: VW_BLUE }}>VW Photo Studio</h1>
           </div>
           
-          <nav className="flex bg-gray-100 p-1 rounded-xl">
+          <nav className="flex bg-gray-100 p-1 rounded-xl shrink-0">
             <button 
               onClick={() => setActiveTab('studio')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'studio' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'studio' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
             >
               스튜디오
             </button>
             <button 
               onClick={() => setActiveTab('history')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'history' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
             >
               히스토리
             </button>
