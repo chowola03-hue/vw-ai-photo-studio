@@ -599,7 +599,7 @@ export default function App() {
 
       <footer className="bg-white border-t border-gray-200 py-12 mt-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-slate-400 text-sm">© 2026 Volkswagen Korea AI Photo Studio. All rights reserved.</p>
+          <p className="text-slate-400 text-sm">© 2026 FRUM AI Photo Studio. All rights reserved.</p>
           <p className="text-slate-300 text-[10px] mt-2">본 서비스는 폭스바겐 코리아 세일즈 컨설턴트 전용 도구입니다.</p>
         </div>
       </footer>
